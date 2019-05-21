@@ -50,12 +50,15 @@ According to [wiki](https://en.wikipedia.org/wiki/Google_Chrome#Extensions):
 [The best Google Chrome extensions 2018](https://www.techradar.com/news/the-best-google-chrome-extensions)
 
 ## The Components of Chrome Extensions
+![components](https://raw.githubusercontent.com/ZoeLiao/Chrome-Extension-practice/master/notes/images/components.png)
 
 Upload Required:
-1. manifest.json: JSON-formatted, contains information that defines the extension.
+1. manifest.json:
+  - JSON-formatted, contains information that defines the extension.
 
 Basic:
-1. Background Scripts: monitor events and then react with specified instructions
+1. Background Scripts:
+  - The heart and soul of extensions, to monitor events and then react with specified instructions
 2. [Content Scrips](https://developer.chrome.com/extensions/content_scripts): 
   - Injected into the tabs in the browser and modify the DOM of the tabs.
   - Content scripts live in an isolated world, allowing a content script to makes changes to its JavaScript environment without conflicting with the page or additional content scripts.
@@ -204,7 +207,7 @@ changeColor.onclick = function(element) {
 };
 ```
 
-## Note: Haddle The permission
+## Haddle The permission
 Use the chrome.permissions API to request declared optional permissions at run time rather than install time, so users understand why the permissions are needed and grant only those that are necessary.
 - file system:
   isAllowedFileSchemeAccess: Retrieves the state of the extension's access to the 'file://' scheme (as determined by the user-controlled 'Allow access to File URLs' checkbox.
@@ -220,7 +223,11 @@ Use the chrome.permissions API to request declared optional permissions at run t
       }
   )
   ```
-
+## i18n:
+- `mkdir _locales` && `cd _locales`
+- choose the language you want to translate, and make directory and messages.json
+- Add `"default_locale": "<language>",` in manifest.json
+- Use `chrome.i18n.getMessage` to get i18n message
 
 ## Test
 1. Visit [chrome://extension](chrome://extension)

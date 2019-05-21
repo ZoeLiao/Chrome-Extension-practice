@@ -26,5 +26,6 @@
         "run_at": "document_end"
         }
     ],
-    "manifest_version": 2
+    "manifest_version": 2,
+    "default_locale": "zh_TW"
 }
