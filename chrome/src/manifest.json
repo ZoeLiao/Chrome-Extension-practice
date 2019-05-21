@@ -1,10 +1,11 @@
 {
-    "name": "Personal Chrome",
+    "name": "Practice Chrome Extension",
     "version": "1.0",
     "description": "Build an Extension!",
     "permissions": [
         "storage",
-        "activeTab"
+        "activeTab",
+        "tabs"
     ],
     "background": {
         "scripts": [
@@ -15,5 +16,15 @@
     "browser_action": {
         "default_popup": "popup.html"
     },
+    "content_scripts": [
+        {
+        "matches": [
+            "http://*/*",
+            "https://*/*"
+            ],
+        "js": ["content.js"],
+        "run_at": "document_end"
+        }
+    ],
     "manifest_version": 2
 }

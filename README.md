@@ -19,6 +19,19 @@ Extension are distributed through [Chrome Web Store](https://chrome.google.com/w
 ## What's the Differece between Chrome Apps, Plugins, and Extensions?
 
 Reference: [Chrome Apps, Plugins, Extensions: What’s the Difference?](https://www.maketecheasier.com/chrome-apps-plugins-extensions-differences/)
+
+[Chrome APP](https://developers.chrome.com/apps/about_apps): 
+- Let you use HTML5, CSS, and JavaScript to deliver an experience comparable to a native application.(to any desktop, mobile devices, and a Chromebook)
+- In late 2017 Google got rid of traditional Chrome apps to pushed the idea of “Progressive Web Apps”(turn websites into instantly accessible apps from your desktop or phone home screen)
+- It have been blended into extensions today
+
+Chrome Plugins: 
+- Plugins are best described as bundles of code that “plug in to” Chrome, allowing web developers to embed certain features, animations, videos and so on to their websites.
+- The idea of Chrome plugins is being phased out or being integrated into the body of the browser.
+
+Those are different but the only thing you’ll ever need to concern yourself with in Chrome are the extensions. “Chrome apps” isn’t a term with a stable meaning at this point (though it may soon be replaced by Progressive Web Apps), while plugins have by and large been deprecated over the years.
+
+
 ## History
 
 According to [wiki](https://en.wikipedia.org/wiki/Google_Chrome#Extensions):
@@ -44,7 +57,7 @@ Upload Required:
 Basic:
 1. Background Scripts: monitor events and then react with specified instructions
 2. [Content Scrips](https://developer.chrome.com/extensions/content_scripts): 
-  - The files that run in the context of web pages. By using DOM, they are able to read details of the web pages the browser visits, make changes to them and pass information to their parent extension.
+  - Injected into the tabs in the browser and modify the DOM of the tabs.
   - Content scripts live in an isolated world, allowing a content script to makes changes to its JavaScript environment without conflicting with the page or additional content scripts.
 
 
@@ -89,7 +102,8 @@ Optional:
     - 1. to listen and react the events
     - 2. persistent: The only occasion to keep a background script persistently active is if the extension uses chrome.webRequest API to block or modify network requests. The webRequest API is incompatible with non-persistent background pages.
 
-  - browser_action: put icons in the main Google Chrome toolbar, to the right of the address bar. In addition to its icon, a browser action can have a tooltip, a badge, and a popup.
+  - browser_action: 
+  put icons in the main Google Chrome toolbar, to the right of the address bar. In addition to its icon, a browser action can have a tooltip, a badge, and a popup.
 
   - If you want to upload your extension to the Chrome App Store, you shoule remove the annotation
 
@@ -100,18 +114,46 @@ chrome.runtime.onInstalled.addListener(function() {
         console.log("The color is green.");
     });
 });
+
+chrome.runtime.onMessage.addListener(function(msg, _, sendResponse) {
+    console.log('The message of content script: 'msg.greeting)
+    sendResponse({ farewell: 'bye!' }); 
+})
 ```
   - chrome API: 
     - [chrome.runtime](https://developer.chrome.com/apps/runtime): to retrieve the background page, return details about the manifest, and listen for and respond to events in the app or extension lifecycle. You can also use this API to convert the relative path of URLs to fully-qualified URLs.
 
-4. `vim content_script.js`
+4. make a file by `vim content_script.js` and paste the following code:
 ```
-chrome.tabs.query({active: true, currentWindow: true}, function(tabs) {
-    chrome.tabs.sendMessage(tabs[0].id, {greeting: "hello"}, function(response) {
-        console.log(response.farewell);
-  });
-});
+//content script can not use chrome.tabs.query
+chrome.runtime.sendMessage({greeting: "hello"}, function(response) {
+    console.log('The response of background sciprt:', response.farewell);
+});  
 ```
+  - Execute content script:
+    - 1. Execute in Manifest.json:
+    ```
+    "content_scripts": [
+        {
+        "matches": [
+            "http://*/*",
+            "https://*/*"
+            ],
+        "js": ["content.js"],
+        "run_at": "document_end"
+        }
+    ],
+    ```
+    - 2. Execute in background script:
+    ```
+    chrome.tabs.executeScript(tabId, {
+        file: 'content.js',
+        runAt: 'document_start',
+    });
+    ```
+    - [runAt](https://developer.chrome.com/apps/extensionTypes): 
+      - The soonest that the JavaScript or CSS will be injected into the tab.
+      - "document_start", "document_end", or "document_idle"
   - Message Passing:
     - 1. Since content scripts run in the context of a web page and not the extension, they often need some way of communicating with the rest of the extension
     - 2. Communication between extensions and their content scripts works by using message passing. Either side can listen for messages sent from the other end, and respond on the same channel
@@ -120,8 +162,47 @@ chrome.tabs.query({active: true, currentWindow: true}, function(tabs) {
     - 5. [chrome.tabs](https://developer.chrome.com/extensions/tabs):  
       - to interact with the browser's tab system. You can use this API to create, modify, and rearrange tabs in the browser. 
       - permission: tabs
-5. `vim popup.html`
-6. `vim popup.js`
+
+5. make a file by `vim popup.html` and paste the following code:
+```
+<!DOCTYPE html>
+<html>
+
+<head>
+    <style>
+        button {
+            height: 30px;
+            width: 30px;
+            outline: none;
+        }
+    </style>
+</head>
+
+<body>
+    <button id="changeColor"></button>
+    <script src="popup.js"></script>
+</body>
+
+</html>
+```
+
+6.  make a file by `vim popup.js` and paste the following code:
+```
+let changeColor = document.getElementById('changeColor');
+
+chrome.storage.sync.get('color', function(data) {
+    changeColor.style.backgroundColor = data.color;
+    changeColor.setAttribute('value', data.color);
+});
+
+changeColor.onclick = function(element) {
+    let color = element.target.value;
+    chrome.tabs.query({ active: true, currentWindow: true }, function(tabs) {
+        chrome.tabs.executeScript(
+            tabs[0].id, { code: 'document.body.style.backgroundColor = "' + color + '";' });
+    });
+};
+```
 
 ## Note: Haddle The permission
 Use the chrome.permissions API to request declared optional permissions at run time rather than install time, so users understand why the permissions are needed and grant only those that are necessary.
@@ -147,6 +228,15 @@ Use the chrome.permissions API to request declared optional permissions at run t
 3. Click 'Load unpacked'
 4. Select the directory and click 'Select' to upload it  
 ![upload](https://raw.githubusercontent.com/ZoeLiao/Chrome-Extension-practice/master/notes/images/upload_file.png)
+
+## Debug:
+- background script:  
+![background](https://raw.githubusercontent.com/ZoeLiao/Chrome-Extension-practice/master/notes/images/background.png)
+- content script:
+use the console of the tabs
+
+## Building
+- you can use webpack to build the dist directory and zip it
 
 ## Publish
 [Official Document](https://developer.chrome.com/webstore/publish)

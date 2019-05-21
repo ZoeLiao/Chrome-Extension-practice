@@ -5,6 +5,6 @@ chrome.runtime.onInstalled.addListener(function() {
 });
 
 chrome.runtime.onMessage.addListener(function(msg, _, sendResponse) {
-    console.log(msg.greeting)
+    console.log('The message of content script:', msg.greeting)
     sendResponse({ farewell: 'bye!' }); 
 })
