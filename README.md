@@ -62,11 +62,13 @@ Basic:
 2. [Content Scrips](https://developer.chrome.com/extensions/content_scripts): 
   - Injected into the tabs in the browser and modify the DOM of the tabs.
   - Content scripts live in an isolated world, allowing a content script to makes changes to its JavaScript environment without conflicting with the page or additional content scripts.
-
-
+  - Content scripts can communicate with their parent extension by exchanging messages and storing values using the storage API.
 
 Optional:
-1. popup page
+1. UI Elements: popup page
+
+![contentscriptarc](https://developer.chrome.com/static/images/overview/contentscriptarc.png)
+(Reference: [Official document extensions overview](https://developer.chrome.com/extensions/overview))
 
 ## Getting Start!
 1. `mkdir <your_extension_dir>` && `cd <your_extension_dir>`
